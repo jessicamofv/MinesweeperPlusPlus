@@ -1,0 +1,4 @@
+./setup/DefaultBeginner.txt
+./setup/DefaultIntermediate.txt
+./setup/DefaultAdvanced.txt
+./setup/J-Level.txt

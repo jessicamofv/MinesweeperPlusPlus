@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="minesweeperplusplus/|minesweeperplusplus/LittleTile.java|minesweeperplusplus/MPPLevel.java|minesweeperplusplus/MPPUser.java|minesweeperplusplus/MinesweeperPlusPlusApplication.java|minesweeperplusplus/MinesweeperPlusPlusGame.java|minesweeperplusplus/MinesweeperPlusPlusGameDataModel.java|minesweeperplusplus/MinesweeperPlusPlusGamePanel.java|minesweeperplusplus/MinesweeperPlusPlusLevelEditor.java|minesweeperplusplus/MinesweeperPlusPlusLevelEditorPanel.java|minesweeperplusplus/MinesweeperPlusPlusLevelNamePanel.java|minesweeperplusplus/Tile.java|minesweeperplusplus/events/" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Users/Jessica/MiniGameFramework.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

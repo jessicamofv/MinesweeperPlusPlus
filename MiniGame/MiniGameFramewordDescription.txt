@@ -1,0 +1,56 @@
+THE MINI GAME FRAMEWORK
+Author: Richard McKenna
+version: 1.0
+
+It is intended that this framework should serve as the base for
+creating simple little Java game applications. Casual games with
+modest rendering needs would be appropriate.
+
+In order to use it to develop a custom game, the developer must:
+
+1) Define a class that extends MiniGame to serve as the main
+game application. This class would serve to:
+	a) Pool all relevant GUI data and settings
+	b) Initialize all game data by overriding the initData, initGUIControls, 
+	and initGUIHandlers methods
+    c) Provide custom implementations of the gameWon, gameLost, and reset
+    methods for managing in-game state transitions 
+    d) Define the per-frame updateGUI method to update the GUI state
+    while the application is running
+
+2) Define a class that extends MiniGameDataModel to manage the game
+data, like game Sprite spawning, collision detection, collision resolution,
+etc. This is done by overriding the checkMousePressOnSprites, reset,
+updateAll, and updateDebugText methods
+
+3) Define a class that extends JPanel and overrides the paintComponent
+method, providing all game rendering there. Note that paintComponent will
+be called each frame at a fixed-rate. Also note that all rendering must
+be done at this time. This includes background images, gui controls,
+gui decor, game sprites, and debug text.
+
+4) Define sprite button handler classes. Note that in this framework, a
+sprite refers to an image that we can render to the screen, change the
+image in-game, and detect mouse presses on it. Therefore we may use
+Sprite objects for both game sprites and GUI buttons. To use Sprite 
+objects as buttons, one must define handlers objects that implement
+ActionListener. The initHandler method in the extended Game class
+would then initialize these objects and set them as the handler for
+each sprite button.
+
+5) Override Sprite class to implement AI for types of sprites as needed.
+Note that obviously, the Game will have to construct these new types
+of sprites. AI decision making would be done in the update method.
+
+Note that additional event handling may be added for controls, but that
+upon doing so, all event handling must lock data using the Game
+class' beginUsingData before use each frame, and release it using 
+the Game class' endUsingData method each frame.
+
+*** NOTE THAT THIS IS NOT A PROFESSIONAL GAME FRAMEWORK IN ANY RESPECTS, ***
+*** IT IS BEING USED FOR EDUCATIONAL PURPOSES FOR TEACHING CSE 219 AT    ***
+*** STONY BROOK UNIVERSITY, DEMONSTRATING HOW FRAMEWORKS MAY BE CREATED  ***
+*** AND USED. IF YOU ARE NOT IN THAT CLASS, PLEASE DO NOT SUE ME OR      ***
+*** THINK THAT I'M DUMB, I DID NOT MAKE IT FOR YOU. IF YOU ARE IN THAT   ***
+*** I WOULD ALSO REQUEST THAT YOU DO NOT SUE ME OR THINK THAT I'M DUMB,  ***
+*** THOUGH AT TIMES I CAN BE.                                            *** 
