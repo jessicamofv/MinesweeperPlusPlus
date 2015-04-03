@@ -44,6 +44,8 @@ public class MinesweeperPlusPlusGamePanel extends JPanel
 		renderGameBoard(g);
 		
 		renderCheese(g);
+		
+		renderRats(g);
 	}
 	
 	public void renderBackground(Graphics g)
@@ -137,6 +139,15 @@ public class MinesweeperPlusPlusGamePanel extends JPanel
 			{
 				renderSprite(g, tileSprites[row][col].getCheese());
 			}
+		}
+	}
+	
+	public void renderRats(Graphics g)
+	{
+		Vector<Rat> rats = data.getRats();
+		for (int i = 0; i < rats.size(); i++)
+		{
+			renderSprite(g, rats.get(i));
 		}
 	}
 	

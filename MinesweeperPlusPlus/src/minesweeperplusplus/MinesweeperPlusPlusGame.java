@@ -26,7 +26,7 @@ public class MinesweeperPlusPlusGame extends MiniGame
 	public static final int FRAME_RATE = 30;
 	public static final String APP_TITLE = "MinesweeperPlusPlus";
 	
-	public static final Color COLOR_KEY = new Color(239, 236, 229);
+	public static final Color COLOR_KEY = new Color(255, 255, 255);
 	
 	public static final String TILE_TYPE = "TILE_TYPE";
 	public static final String CHEESE_TYPE = "CHEESE_TYPE";
@@ -44,6 +44,9 @@ public class MinesweeperPlusPlusGame extends MiniGame
 	public static final String RAT_TYPE = "RAT_TYPE";
 	public static final String RAT_LEFT_STATE = "RAT_LEFT_STATE";
 	public static final String RAT_RIGHT_STATE = "RAT_RIGHT_STATE";
+	public static final String EXPLODING_RAT_LEFT_STATE = "EXPLODING_RAT_LEFT_STATE";
+	public static final String EXPLODING_RAT_RIGHT_STATE = "EXPLODING_RAT_RIGHT_STATE";
+	public static final String EXPLODED_RAT_STATE = "EXPLODED_RAT_STATE";
 	
 	public static final String BACKGROUND_TYPE = "BACKGROUND_TYPE";
 	public static final String NORTH_TOOLBAR_TYPE = "SOUTH_TOOLBAR_TYPE";
@@ -121,7 +124,7 @@ public class MinesweeperPlusPlusGame extends MiniGame
 		
 		sT = new SpriteType(CHEESE_TYPE);
 		data.addSpriteType(sT);
-		img = loadImage("./setup/images/Cheese.jpg");
+		img = loadImageWithColorKey("./setup/images/Cheese.png", COLOR_KEY);
 		sT.addState(VISIBLE_STATE, img);
 		sT.addState(INVISIBLE_STATE, img);
 		
@@ -139,10 +142,16 @@ public class MinesweeperPlusPlusGame extends MiniGame
 		
 		sT = new SpriteType(RAT_TYPE);
 		data.addSpriteType(sT);
-		img = loadImageWithColorKey("./setup/images/RatFacingLeft.jpg", COLOR_KEY);
+		img = loadImageWithColorKey("./setup/images/RatFacingLeft.png", COLOR_KEY);
 		sT.addState(RAT_LEFT_STATE, img);
-		img = loadImageWithColorKey("./setup/images/RatFacingRight.jpg", COLOR_KEY);
+		img = loadImageWithColorKey("./setup/images/RatFacingRight.png", COLOR_KEY);
 		sT.addState(RAT_RIGHT_STATE, img);
+		img = loadImageWithColorKey("./setup/images/ExplodingRatFacingLeft.png", COLOR_KEY);
+		sT.addState(EXPLODING_RAT_LEFT_STATE, img);
+		img = loadImageWithColorKey("./setup/images/ExplodingRatFacingRight.png", COLOR_KEY);
+		sT.addState(EXPLODING_RAT_RIGHT_STATE, img);
+		img = loadImageWithColorKey("./setup/images/ExplodedRat.png", COLOR_KEY);
+		sT.addState(EXPLODED_RAT_STATE, img);
 	}
 	
 	public void initGUIControls()

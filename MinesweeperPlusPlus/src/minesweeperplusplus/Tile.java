@@ -74,6 +74,10 @@ public class Tile extends Sprite
 	{
 		int num = Integer.parseInt(numBorderingMines);
 		num--;
+		if (num < 0)
+		{
+			num = 0;
+		}
 		numBorderingMines = "" + num;
 	}
 	

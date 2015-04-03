@@ -21,19 +21,36 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 	private int maxCols;
 	private int tileWidth;
 	private int tileHeight;
+	private Vector<Tile> playableTiles;
 	private Vector<Sprite> minesToExplode;
 	private Vector<Tile> mineTiles;
+	private Vector<Tile> mineTilesToRemove;
 	private Vector<Tile> mineCandidates;
+	private Vector<Tile> cheeseTiles;
+	private Vector<Tile> cheeseTilesToClear;
+	private Vector<Rat> rats;
+	private Vector<Rat> ratsToRemove;
 	private Tile[][] cells;
+	private Tile ratSpawnLocation;
+	private int ratSpawnFrameCounter;
+	private float secsSinceSpawn;
 	
 	public MinesweeperPlusPlusGameDataModel(MinesweeperPlusPlusGame initGame)
 	{
 		game = initGame;
 		maxRows = MinesweeperPlusPlusLevelEditor.MAX_GAME_BOARD_ROWS;
 		maxCols = MinesweeperPlusPlusLevelEditor.MAX_GAME_BOARD_COLS;
+		playableTiles = new Vector<Tile>();
 		minesToExplode = new Vector<Sprite>();
 		mineTiles = new Vector<Tile>();
+		mineTilesToRemove = new Vector<Tile>();
 		mineCandidates = new Vector<Tile>();
+		cheeseTiles = new Vector<Tile>();
+		cheeseTilesToClear = new Vector<Tile>();
+		rats = new Vector<Rat>();
+		ratsToRemove = new Vector<Rat>();
+		ratSpawnFrameCounter = 0;
+		secsSinceSpawn = 0;
 	}
 	
 	public Tile[][] getGameBoard()
@@ -44,6 +61,11 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 	public Tile[][] getCells()
 	{
 		return cells;
+	}
+	
+	public Vector<Rat> getRats()
+	{
+		return rats;
 	}
 	
 	public int getMaxRows()
@@ -69,6 +91,16 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 	public Vector<Tile> getMineCandidates()
 	{
 		return mineCandidates;
+	}
+	
+	public Vector<Tile> getPlayableTiles()
+	{
+		return playableTiles;
+	}
+	
+	public Vector<Tile> getCheeseTiles()
+	{
+		return cheeseTiles;
 	}
 	
 	public MinesweeperPlusPlusGame getGame()
@@ -99,13 +131,13 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 				
 				gameBoard[row][col] = new Tile(getSpriteType(MinesweeperPlusPlusGame.TILE_TYPE), 
 						xCoord, yCoord, (float)0, (float)0, littleGameBoard[row][col].getState(), this);
-			
 
 				cells[row][col] = new Tile(getSpriteType(MinesweeperPlusPlusGame.TILE_TYPE), 
 						xCoord, yCoord, (float)0, (float)0, MinesweeperPlusPlusGame.INVISIBLE_STATE, this);
 				
 				if (gameBoard[row][col].getState().equals("VISIBLE_STATE"))
 				{
+					playableTiles.add(gameBoard[row][col]);
 					TileClickHandler tch = new TileClickHandler(this, row, col);
 					(gameBoard[row][col]).setActionListener(tch);
 					mineCandidates.add(gameBoard[row][col]);
@@ -135,9 +167,9 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 			}
 		}
 		
-		for (int j = 0; j < mineTiles.size(); j++)
+		for (Tile mineTile : mineTiles)
 		{
-			mineTiles.elementAt(j).getMine().setState(MinesweeperPlusPlusGame.INTACT_STATE);
+			mineTile.getMine().setState(MinesweeperPlusPlusGame.INTACT_STATE);
 		}
 		
 		Tile tileToTest;
@@ -152,36 +184,44 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 			{
 				tileToTest = gameBoard[row][col];
 				
-				prevRow = row - 1;
-				nextRow = row + 1;
-				prevCol = col - 1;
-				nextCol = col + 1;
-				
-				if ((prevRow >= 0 && prevCol >= 0) && ((gameBoard[prevRow][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE))) 
-					tileToTest.incrementNumBorderingMines();
+				if (!mineTiles.contains(tileToTest))
+				{
+					prevRow = row - 1;
+					nextRow = row + 1;
+					prevCol = col - 1;
+					nextCol = col + 1;
 					
-				if ((prevRow >= 0) && ((gameBoard[prevRow][col].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((prevRow >= 0) && (nextCol <= (maxCols - 1)) && ((gameBoard[prevRow][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((prevCol >= 0) && ((gameBoard[row][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((nextCol <= (maxCols - 1)) && ((gameBoard[row][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((nextRow <= (maxRows - 1) && (prevCol >= 0)) && ((gameBoard[nextRow][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((nextRow <= (maxRows - 1)) && ((gameBoard[nextRow][col].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
-				
-				if ((nextRow <= (maxRows - 1) && nextCol <= (maxCols - 1)) && ((gameBoard[nextRow][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
-					tileToTest.incrementNumBorderingMines();
+					if ((prevRow >= 0 && prevCol >= 0) && ((gameBoard[prevRow][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE))) 
+						tileToTest.incrementNumBorderingMines();
+						
+					if ((prevRow >= 0) && ((gameBoard[prevRow][col].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((prevRow >= 0) && (nextCol <= (maxCols - 1)) && ((gameBoard[prevRow][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((prevCol >= 0) && ((gameBoard[row][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((nextCol <= (maxCols - 1)) && ((gameBoard[row][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((nextRow <= (maxRows - 1) && (prevCol >= 0)) && ((gameBoard[nextRow][prevCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((nextRow <= (maxRows - 1)) && ((gameBoard[nextRow][col].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+					
+					if ((nextRow <= (maxRows - 1) && nextCol <= (maxCols - 1)) && ((gameBoard[nextRow][nextCol].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE)))
+						tileToTest.incrementNumBorderingMines();
+				}
 			}
 		}
+		
+		int ratSpawnRow = (int)(currentLevel.getRatSpawnLocation().getY()/game.getEditor().getLittleTileHeight());
+		int ratSpawnCol = (int)(currentLevel.getRatSpawnLocation().getX()/game.getEditor().getLittleTileWidth());
+		ratSpawnLocation = new Tile(getSpriteType(MinesweeperPlusPlusGame.TILE_TYPE), 
+				ratSpawnCol * tileWidth, ratSpawnRow * tileHeight, (float)0, (float)0, MinesweeperPlusPlusGame.RAT_SPAWN_STATE, this); 
 		
 		initClickHandler();	
 	}
@@ -296,6 +336,164 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 			}
 		}*/
 	}
+	public void addCheeseTile(Tile tileToAdd)
+	{
+		cheeseTiles.add(tileToAdd);
+	}
+	
+	public void removeCheeseTile(Tile tileToRemove)
+	{
+		if (cheeseTiles.contains(tileToRemove))
+		{
+			cheeseTiles.remove(tileToRemove);
+		}
+	}
+	
+	public void spawnRat()
+	{
+		Rat rat;
+		String initRatState;
+		
+		if (Math.random() < 0.5)
+		{
+			initRatState = MinesweeperPlusPlusGame.RAT_LEFT_STATE;
+		}
+		else
+		{
+			initRatState = MinesweeperPlusPlusGame.RAT_RIGHT_STATE;
+		}
+		
+		rat = new Rat(getSpriteType(MinesweeperPlusPlusGame.RAT_TYPE), 
+				ratSpawnLocation.getX(), ratSpawnLocation.getY() + tileHeight,
+				(float)0, (float)0, initRatState);
+		rats.add(rat);
+		
+		/* Don't need this --- have rat move randomly, not necessarily towards the 
+		board, if there's no cheese
+		float distanceToTile;
+		float distanceToNearestTile;
+		Tile nearestTile;
+		
+		// if there is no cheese on the board, figure out which playable tile is
+		// nearest to spawned rat
+		if (cheeseTiles.isEmpty())
+		{
+			distanceToNearestTile = ratSpawnLocation.calculateDistanceToSprite(playableTiles.get(0));
+			nearestTile = playableTiles.get(0);
+			for (int i = 1; i < playableTiles.size(); i++)
+			{
+				distanceToTile = ratSpawnLocation.calculateDistanceToSprite(playableTiles.get(i));
+				if (distanceToTile < distanceToNearestTile)
+				{
+					distanceToNearestTile = distanceToTile;
+					nearestTile = playableTiles.get(i);
+				}
+			}
+		}
+		// else figure out which cheese is nearest to spawned rat
+		else
+		{
+			distanceToNearestTile = ratSpawnLocation.calculateDistanceToSprite(cheeseTiles.get(0));
+			nearestTile = cheeseTiles.get(0);
+			for (int i = 1; i < cheeseTiles.size(); i++)
+			{
+				distanceToTile = ratSpawnLocation.calculateDistanceToSprite(cheeseTiles.get(i));
+				if (distanceToTile < distanceToNearestTile)
+				{
+					distanceToNearestTile = distanceToTile;
+					nearestTile = cheeseTiles.get(i);
+				}
+			}
+		}
+		
+		// if rat spawn location is on the left side of the nearest cheese or nearest
+		// tile if there is no cheese, spawn rat facing right
+		if (ratSpawnLocation.getX() <= nearestTile.getX())
+		{
+			rat = new Rat(getSpriteType(MinesweeperPlusPlusGame.RAT_TYPE), 
+				ratSpawnLocation.getX(), ratSpawnLocation.getY() + tileHeight, 
+				(float)0, (float)0, MinesweeperPlusPlusGame.RAT_RIGHT_STATE);
+			if (ratSpawnLocation.getX() == nearestTile.getX())
+			{
+				rat.initTowardBoard(0, tileWidth);
+			}
+			else
+			{
+				rat.initTowardBoard(1, tileWidth);
+			}
+			
+			if (!cheeseTiles.isEmpty())
+			{
+				rat.setTargetCheeseTile(nearestTile);
+			}
+			rats.add(rat);
+		}
+		// else spawn rat facing left
+		else
+		{
+			rat = new Rat(getSpriteType(MinesweeperPlusPlusGame.RAT_TYPE), 
+					ratSpawnLocation.getX(), ratSpawnLocation.getY() + tileHeight, 
+					(float)0, (float)0, MinesweeperPlusPlusGame.RAT_LEFT_STATE);
+			rat.initTowardBoard(-1, tileWidth);
+			if (!cheeseTiles.isEmpty())
+			{
+				rat.setTargetCheeseTile(nearestTile);
+			}
+			rats.add(rat);
+		}*/
+	}
+	
+	public void markCheeseToBeEaten(Tile tileToClear)
+	{
+		cheeseTilesToClear.add(tileToClear);
+	}
+	
+	public boolean isCheeseMarkedToBeEaten(Tile tileToCheck)
+	{
+		return cheeseTilesToClear.contains(tileToCheck);
+	}
+	
+	public boolean hasCheese(Tile tileToCheck)
+	{
+		return cheeseTiles.contains(tileToCheck);
+	}
+	
+	public void markRatToBeRemoved(Rat ratToRemove)
+	{
+		ratsToRemove.add(ratToRemove);
+	}
+	
+	public void markMineTileToBeRemoved(Tile mineTileToRemove)
+	{
+		mineTilesToRemove.add(mineTileToRemove);
+	}
+	
+	public void clearCell(Tile cellToClear)
+	{
+		mineTiles.remove(cellToClear);
+		cellToClear.setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
+		cellToClear.getMine().setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
+		int row = (int)cellToClear.getY()/tileHeight - 1;
+		int col = (int)cellToClear.getX()/tileWidth;
+		
+		for (int i = row - 1; i <= row + 1; i++)
+		{
+			for (int j = col - 1; j <= col + 1; j++)
+			{
+				if (!(i == row && j == col))
+				{
+					for (Tile playableTile : playableTiles)
+					{
+						if (playableTile.getY()/tileHeight == i && playableTile.getX()/tileWidth == j)
+						{
+							gameBoard[i][j].decrementNumBorderingMines();
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	public void checkMousePressOnSprites(MiniGame game, int x, int y)
 	{
@@ -304,9 +502,17 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 	
 	public void reset(MiniGame game)
 	{
-		minesToExplode = new Vector<Sprite>();
-		mineTiles = new Vector<Tile>();
-		mineCandidates = new Vector<Tile>();
+		playableTiles.clear();
+		minesToExplode.clear();
+		mineTiles.clear();
+		mineTilesToRemove.clear();
+		mineCandidates.clear();
+		cheeseTiles.clear();
+		cheeseTilesToClear.clear();
+		rats.clear();
+		ratsToRemove.clear();
+		ratSpawnFrameCounter = 0;
+		
 		initGameBoard();
 		
 		beginGame();
@@ -341,6 +547,7 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 				{
 					if ((gameBoard[row][col].getMine()).getState().equals(MinesweeperPlusPlusGame.INTACT_STATE))
 					{
+						gameBoard[row][col].getCheese().setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
 						markForExplosion(gameBoard[row][col].getMine());
 					}	
 				}
@@ -351,6 +558,133 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 			for (int i = 1; i < minesToExplode.size(); i++)
 			{
 				minesToExplode.elementAt(i).setState(MinesweeperPlusPlusGame.EXPLODED_STATE);
+			}
+		}
+		
+		secsSinceSpawn = ratSpawnFrameCounter/MinesweeperPlusPlusGame.FRAME_RATE;
+		
+		if (1/secsSinceSpawn == currentLevel.getRatSpawnRate())
+		{
+			spawnRat();
+			ratSpawnFrameCounter = -1;
+			secsSinceSpawn = -1;
+		}
+		
+		ratSpawnFrameCounter++;
+		
+		for (Tile cheeseTileToClear : cheeseTilesToClear)
+		{
+			cheeseTileToClear.getCheese().setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
+			cheeseTiles.remove(cheeseTileToClear);
+		}
+		
+		cheeseTilesToClear.clear();
+		
+		for (Rat ratToRemove : ratsToRemove)
+		{
+			rats.remove(ratToRemove);
+		}
+		
+		ratsToRemove.clear();
+		
+		for (Tile mineTileToRemove : mineTilesToRemove)
+		{
+			clearCell(mineTileToRemove);
+		}
+		
+		mineTilesToRemove.clear();
+		
+		updateRats();
+	}
+	
+	public void updateRats()
+	{
+		for (Rat rat : rats)
+		{
+			if (rat.isDead())
+			{
+				rat.decrementDeadCounter();
+				
+				if (rat.getDeadCounter() == 0)
+				{
+					markRatToBeRemoved(rat);
+					for (Tile mineTile : mineTiles)
+					{
+						if (mineTile.aabbsOverlap(rat))
+						{
+							markMineTileToBeRemoved(mineTile);
+							break;
+						}
+					}
+				}
+			}
+			else if (rat.isGoingToDie())
+			{
+				rat.decrementDyingCounter();
+				
+				if (rat.getState().equals(MinesweeperPlusPlusGame.RAT_LEFT_STATE))
+				{
+					rat.setState(MinesweeperPlusPlusGame.EXPLODING_RAT_LEFT_STATE);
+				}
+				else
+				{
+					rat.setState(MinesweeperPlusPlusGame.EXPLODING_RAT_RIGHT_STATE);
+				}
+				
+				if (rat.getDyingCounter() == 0)
+				{
+					for (Tile playableTile : playableTiles)
+					{
+						if (playableTile.aabbsOverlap(rat))
+						{
+							if (mineTiles.contains(playableTile))
+							{
+								rat.setState(MinesweeperPlusPlusGame.EXPLODED_RAT_STATE);
+								rat.markAsDead();
+								break;
+							}
+							else
+							{
+								if (rat.getState().equals(MinesweeperPlusPlusGame.EXPLODING_RAT_LEFT_STATE))
+								{
+									rat.setState(MinesweeperPlusPlusGame.RAT_LEFT_STATE);
+								}
+								else
+								{
+									rat.setState(MinesweeperPlusPlusGame.RAT_RIGHT_STATE);
+								}
+								
+								rat.resetDyingCounter();
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				rat.incrementMoveCounter();
+				
+				// change this back to 150 when you're done testing?
+				if (rat.getMoveCounter() == 30)
+				{
+					if (!cheeseTiles.isEmpty())
+					{
+						rat.updateTargetCheeseTile(this);
+					}
+					rat.goForCheese(this);
+					rat.update(game);
+					
+					// TODO: add this back!
+					for (Tile mineTile : mineTiles)
+					{
+						if (mineTile.aabbsOverlap(rat) 
+							&& mineTile.getCheese().getState().equals(MinesweeperPlusPlusGame.INVISIBLE_STATE))
+						{
+							markForExplosion(mineTile.getMine());
+							markRatToBeRemoved(rat);
+						}
+					}
+				}
 			}
 		}
 	}
