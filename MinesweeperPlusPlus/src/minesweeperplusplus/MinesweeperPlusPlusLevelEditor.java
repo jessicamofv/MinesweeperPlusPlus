@@ -22,6 +22,7 @@ import minesweeperplusplus.events.CancelHandler;
 import minesweeperplusplus.events.CreateCustomLevelHandler;
 import minesweeperplusplus.events.CustomLevelGameBoardPanelHandler;
 import minesweeperplusplus.events.CustomizationWindowsHandler;
+import minesweeperplusplus.events.DeleteLevelHandler;
 import minesweeperplusplus.events.LevelEditorLogOutHandler;
 import minesweeperplusplus.events.LevelScrollHandler;
 import minesweeperplusplus.events.LittleTileClickHandler;
@@ -691,6 +692,7 @@ public class MinesweeperPlusPlusLevelEditor
 		placeComponentInContainer(buttonPanel, playLevelButton, 1, 0, 3, 1);
 		deleteLevelButton = new JButton("Delete Level");
 		placeComponentInContainer(buttonPanel, deleteLevelButton, 1, 1, 3, 1);
+		deleteLevelButton.setEnabled(false);
 		viewLevelStatsButton = new JButton("View Level Stats");
 		placeComponentInContainer(buttonPanel, viewLevelStatsButton, 1, 2, 3, 1);
 		createCustomLevelButton = new JButton("Create Custom Level");
@@ -755,6 +757,9 @@ public class MinesweeperPlusPlusLevelEditor
 		
 		PlayLevelHandler plh = new PlayLevelHandler(this);
 		playLevelButton.addActionListener(plh);
+		
+		DeleteLevelHandler dlh = new DeleteLevelHandler(this);
+		deleteLevelButton.addActionListener(dlh);
 		
 		LevelEditorLogOutHandler leloh = new LevelEditorLogOutHandler(this, application);
 		logOutButton.addActionListener(leloh);
@@ -1006,7 +1011,7 @@ public class MinesweeperPlusPlusLevelEditor
 	// ARROW BUTTON, RESPECTIVELY
 	public void scrollLevel(JButton initArrowButton)
 	{
-	if (initArrowButton.equals(rightArrowButton) && levelIndex != levels.size())
+		if (initArrowButton.equals(rightArrowButton) && levelIndex != levels.size())
 		{
 			levelIndex++;
 		}
@@ -1014,6 +1019,15 @@ public class MinesweeperPlusPlusLevelEditor
 		else if (initArrowButton.equals(leftArrowButton) && levelIndex != 0)
 		{
 			levelIndex--;
+		}
+		
+		if (levelIndex < 3)
+		{
+			deleteLevelButton.setEnabled(false);
+		}
+		else
+		{
+			deleteLevelButton.setEnabled(true);
 		}
 	
 		this.changePanel();
@@ -1157,6 +1171,9 @@ public class MinesweeperPlusPlusLevelEditor
 			// CLEAR AND CLOSE PRINTWRITER
 			out.flush();
 			out.close();
+			
+			levelFileNames.add(fileName);
+			updateLevelFileNamesFile();
 		}
 		catch(Exception e)
         {
@@ -1166,9 +1183,58 @@ public class MinesweeperPlusPlusLevelEditor
 		
 		// CLEAR visibleLittleTiles VECTOR SO THAT IT CAN BE USED FOR NEXT LEVEL
 		visibleLittleTiles.removeAllElements();
+	}
+	
+	public void deleteCustomLevel()
+	{
+		String fileName = "./setup/" + levels.elementAt(levelIndex).getLevelName().replaceAll("\\s", "") + ".txt";
+		File file = new File(fileName);
+		String tempFileName = "./setup/temp.txt";
 		
-		levelFileNames.add(fileName);
-		updateLevelFileNamesFile(/*fileName*/);
+		try
+		{
+			file.delete();
+			
+			Reader reader = new FileReader(LEVEL_FILENAMES_FILE);
+			BufferedReader in = new BufferedReader(reader);
+			Writer writer = new FileWriter(tempFileName);
+			PrintWriter out = new PrintWriter(writer);
+				
+			String line = in.readLine();
+			
+			while (line != null)
+			{
+				if (!line.equals(fileName))
+				{
+					out.println(line);
+				}
+				
+				line = in.readLine();
+			}
+			
+			out.flush();
+			out.close();
+			in.close();
+			
+			File levelFileNamesFile = new File(LEVEL_FILENAMES_FILE);
+			// File can't exist if it's going to be overwritten
+			levelFileNamesFile.delete();
+			File tempFile = new File(tempFileName);
+			tempFile.renameTo(levelFileNamesFile);
+			
+			levels.removeElementAt(levelIndex);
+			levelFileNames.remove(fileName);
+			
+			// go back to showing previous level now that this level
+			// is gone
+			levelIndex--;
+			changePanel();
+		}
+		catch(Exception e)
+        {
+			JOptionPane.showMessageDialog(levelEditorWindow, "Error deleting custom level");
+			System.exit(0);
+        }
 	}
 	
 	// ADDS NAME OF TEXT FILE REPRESENTING NEW LEVEL TO TEXT FILE CONTAINING LIST OF LEVEL FILENAMES
