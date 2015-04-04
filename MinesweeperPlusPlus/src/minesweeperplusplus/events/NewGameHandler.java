@@ -19,6 +19,10 @@ public class NewGameHandler implements ActionListener
 	
 	public void actionPerformed(ActionEvent ae)
 	{
+		if (data.inProgress())
+		{
+			data.endGameAsLoss();
+		}
 		data.reset(game);
 	}
 }

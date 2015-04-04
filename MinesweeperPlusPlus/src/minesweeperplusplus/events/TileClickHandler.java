@@ -54,11 +54,13 @@ public class TileClickHandler implements ActionListener
 				{
 					tile.getCheese().setState(MinesweeperPlusPlusGame.VISIBLE_STATE);
 					data.addCheeseTile(tile);
+					data.decrementMineCounter();
 				}
 				else
 				{
 					tile.getCheese().setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
 					data.removeCheeseTile(tile);
+					data.incrementMineCounter();
 				}
 			}
 		}

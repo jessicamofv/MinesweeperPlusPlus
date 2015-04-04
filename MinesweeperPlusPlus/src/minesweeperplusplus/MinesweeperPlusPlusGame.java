@@ -49,7 +49,7 @@ public class MinesweeperPlusPlusGame extends MiniGame
 	public static final String EXPLODED_RAT_STATE = "EXPLODED_RAT_STATE";
 	
 	public static final String BACKGROUND_TYPE = "BACKGROUND_TYPE";
-	public static final String NORTH_TOOLBAR_TYPE = "SOUTH_TOOLBAR_TYPE";
+	public static final String NORTH_TOOLBAR_TYPE = "NORTH_TOOLBAR_TYPE";
 	public static final String DEFAULT_STATE = "DEFAULT_STATE";
 	
 	public static final String NEW_GAME_TYPE = "NEW_GAME_TYPE";
@@ -226,7 +226,7 @@ public class MinesweeperPlusPlusGame extends MiniGame
 		x = BUTTON_WIDTH;
 		y = 0;
 		s = new Sprite(sT, x, y, (float)0, (float)0, DEFAULT_STATE);
-		QuitGameHandler qgh = new QuitGameHandler(this);
+		QuitGameHandler qgh = new QuitGameHandler(this, data);
 		s.setActionListener(qgh);
 		guiButtons.put(QUIT_GAME_TYPE, s);
 		

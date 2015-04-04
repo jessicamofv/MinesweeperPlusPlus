@@ -61,6 +61,46 @@ public class MinesweeperPlusPlusGamePanel extends JPanel
 		{
 			if (!s.getSpriteType().getSpriteTypeID().equals(BACKGROUND_TYPE))
 				renderSprite(g, s);
+			
+			if (s.getSpriteType().getSpriteTypeID().equals(TIMER_DISPLAY_TYPE))
+			{
+				String timerText = "" + data.getGameTimeInSecs();
+				String prefix = "";
+				
+				if (timerText.length() < 3)
+				{
+					for (int i = timerText.length(); i < 3; i++)
+					{
+						prefix += "0";
+					}
+				}
+				
+				timerText = prefix + timerText;
+				
+				g.setColor(Color.WHITE);
+				g.setFont(new Font(null, Font.BOLD, 24));
+				g.drawString(timerText, (int)s.getX() + 5, (int)s.getY() + 19);
+			}
+			
+			if (s.getSpriteType().getSpriteTypeID().equals(COUNTER_DISPLAY_TYPE))
+			{
+				String mineCounterText = "" + data.getMineCounter();
+				String prefix = "";
+				
+				if (mineCounterText.length() < 3)
+				{
+					for (int i = mineCounterText.length(); i < 3; i++)
+					{
+						prefix += "0";
+					}
+				}
+				
+				mineCounterText = prefix + mineCounterText;
+				
+				g.setColor(Color.WHITE);
+				g.setFont(new Font(null, Font.BOLD, 24));
+				g.drawString(mineCounterText, (int)s.getX() + 5, (int)s.getY() + 19);
+			}
 		}
 		
 		Collection<Sprite> buttonSprites = game.getGUIButtons().values();

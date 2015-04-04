@@ -2,3 +2,4 @@
 ./setup/DefaultIntermediate.txt
 ./setup/DefaultAdvanced.txt
 ./setup/J-Level.txt
+./setup/TestLevel.txt
