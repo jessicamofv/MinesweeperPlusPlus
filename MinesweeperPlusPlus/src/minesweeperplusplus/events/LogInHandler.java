@@ -24,24 +24,37 @@ public class LogInHandler implements ActionListener
 	public void actionPerformed(ActionEvent ae)
 	{
 		String newUser = newUserField.getText();
-		if (!(newUser == null) && !newUser.replaceAll("\\s", "").equals(""))
+		String existingUser = (String)existingUsersComboBox.getSelectedItem();
+		// fields can be neither both blank nor both filled
+		if (((newUser == null || newUser.trim().equals(""))
+			&& (existingUser == null || existingUser.trim().equals("")))
+			|| (!(newUser == null) && !newUser.trim().equals("")
+			&& !(existingUser == null) && !existingUser.equals("")))
 		{
-			application.setCurrentUser(newUser);
-			application.addCurrentUserToExistingUsers();
-			application.getLogInWindow().setVisible(false);
-			application.initLevelEditorWindow();
+			application.showLogInErrorMessage("Please enter a new username OR select an existing "
+					+ "username.");
+			newUserField.requestFocus();
 		}
-		else
+		else if (!(newUser == null) && !newUser.trim().equals(""))
 		{
-			String existingUser = (String)existingUsersComboBox.getSelectedItem();
-			if (!(existingUser == null) && !existingUser.equals(""))
+			if (application.isExistingUsername(newUser))
 			{
-				application.setCurrentUser(existingUser);
+				application.showLogInErrorMessage("There is already a user with that username.");
+				newUserField.requestFocus();
+			}
+			else
+			{
+				application.setCurrentUser(newUser);
+				application.addCurrentUserToExistingUsers();
 				application.getLogInWindow().setVisible(false);
 				application.initLevelEditorWindow();
 			}
-			else
-				application.showUserErrorMessage();
+		}
+		else
+		{
+			application.setCurrentUser(existingUser);
+			application.getLogInWindow().setVisible(false);
+			application.initLevelEditorWindow();
 		}
 	}
 }

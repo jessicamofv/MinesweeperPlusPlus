@@ -3,3 +3,4 @@
 ./setup/DefaultAdvanced.txt
 ./setup/J-Level.txt
 ./setup/TestLevel2.txt
+./setup/Test.txt

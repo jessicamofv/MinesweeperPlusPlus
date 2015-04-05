@@ -18,15 +18,28 @@ public class MoreCustomLevelOptionsHandler implements ActionListener
 	
 	public void actionPerformed(ActionEvent ae)
 	{
+		String levelFileName = "./setup/" 
+				+ editor.getLevelNameField().getText().replaceAll("\\s", "") + ".txt";
 		if (editor.getLevelNameField().getText() == null
-			|| editor.getLevelNameField().getText().equals("")
-			|| editor.getVisibleLittleTiles().isEmpty())
+			|| editor.getLevelNameField().getText().trim().equals(""))
 		{
-			JOptionPane.showMessageDialog(editor.getCustomLevelLayoutWindow(), 
-					"Please complete all customizations.");
-			editor.getCustomLevelGameBoardPanel().repaint();
+			editor.showCustomLevelLayoutErrorMessage("Please enter a name for this level.");
+			// is a repaint needed?
+			// editor.getCustomLevelGameBoardPanel().repaint();
+			editor.getLevelNameField().requestFocus();
 		}
-		
+		else if (editor.getLevelFileNames().contains(levelFileName))
+		{
+			editor.showCustomLevelLayoutErrorMessage("There is already a level with that name.");
+			//editor.getCustomLevelGameBoardPanel().repaint();
+			editor.getLevelNameField().requestFocus();
+		}
+		else if (editor.getVisibleLittleTiles().size() < 2)
+		{
+			editor.showCustomLevelLayoutErrorMessage("The game board must contain at least two "
+					+ "tiles.");
+			//editor.getCustomLevelGameBoardPanel().repaint();
+		}
 		else
 			editor.initMoreCustomLevelOptionsWindow();
 	}

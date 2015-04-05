@@ -169,6 +169,19 @@ public class MinesweeperPlusPlusApplication
         }
 	}
 	
+	public boolean isExistingUsername(String usernameToCheck)
+	{
+		for (String existingUsername : existingUsersList)
+		{
+			if (usernameToCheck.equalsIgnoreCase(existingUsername))
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	// INITIALIZE LEVEL EDITOR WINDOW, WHICH OPENS UPON PRESSING OF LOG-IN BUTTON
 	public void initLevelEditorWindow()
 	{
@@ -176,9 +189,9 @@ public class MinesweeperPlusPlusApplication
 		editor.startLevelEditor();
 	}
 	
-	public void showUserErrorMessage()
+	public void showLogInErrorMessage(String message)
 	{
-		JOptionPane.showMessageDialog(logInWindow, "User cannot be blank.");
+		JOptionPane.showMessageDialog(logInWindow, message);
 	}
 	
 	// CLOSE APPLICATION UPON EXING-OUT OF LOG-IN WINDOW

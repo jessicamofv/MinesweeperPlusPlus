@@ -126,6 +126,11 @@ public class MinesweeperPlusPlusLevelEditor
 	
 	public Vector<LittleTile> getVisibleLittleTiles() { return visibleLittleTiles; }
 	
+	public Vector<String> getLevelFileNames()
+	{
+		return levelFileNames;
+	}
+	
 	public LittleTile[][] getBoardForRatSpawnLocationSelection()
 	{ 
 		return boardForRatSpawnLocationSelection;
@@ -1133,8 +1138,8 @@ public class MinesweeperPlusPlusLevelEditor
 		}
 		
 		// CONSTRUCT NEW LEVEL USING INFO ENTERED IN CUSTOMIZATION WINDOWS
-		float ratSpawnRate = (float)Integer.parseInt(ratSpawnRateRatsField.getText())/Integer.parseInt(ratSpawnRateSecsField.getText());
-		levelToAdd = new MPPLevel(levelNameField.getText(), Integer.parseInt(numMinesField.getText()), 
+		float ratSpawnRate = (float)Integer.parseInt(ratSpawnRateRatsField.getText().trim())/Integer.parseInt(ratSpawnRateSecsField.getText().trim());
+		levelToAdd = new MPPLevel(levelNameField.getText(), Integer.parseInt(numMinesField.getText().trim()), 
 				ratSpawnRate, ratSpawnLocation, customLittleGameBoard);
 		
 		String fileName = "./setup/" + levelToAdd.getLevelName().replaceAll("\\s", "") + ".txt";
@@ -1324,6 +1329,33 @@ public class MinesweeperPlusPlusLevelEditor
 		
 		ratSpawnLocationSelectionPanel.setLittleGameBoard(boardForRatSpawnLocationSelection);
 		ratSpawnLocationSelectionPanel.repaint();
+	}
+	
+	public boolean isPositiveInteger(String input, int radix) {
+		input = input.trim();
+	    if (input == null || input.isEmpty())
+	    {
+	    	return false;
+	    }
+	    for(int i = 0; i < input.length(); i++)
+	    {
+	    	if(Character.digit(input.charAt(i),radix) < 0
+	    		|| Character.digit(input.charAt(0), radix) == 0)
+	        {	
+	        	return false;
+	        }
+	    }
+	    return true;
+	}
+	
+	public void showCustomLevelLayoutErrorMessage(String message)
+	{
+		JOptionPane.showMessageDialog(customLevelLayoutWindow, message);
+	}
+	
+	public void showMoreCustomLevelOptionsErrorMessage(String message)
+	{
+		JOptionPane.showMessageDialog(moreCustomLevelOptionsWindow, message);
 	}
 	
 	// RUN LEVEL EDITOR BY OPENING LEVEL EDITOR WINDOW AND RENDERING LITTLE GAME
