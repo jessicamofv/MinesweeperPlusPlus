@@ -250,7 +250,7 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 		int ratSpawnRow = (int)(currentLevel.getRatSpawnLocation().getY()/game.getEditor().getLittleTileHeight());
 		int ratSpawnCol = (int)(currentLevel.getRatSpawnLocation().getX()/game.getEditor().getLittleTileWidth());
 		ratSpawnLocation = new Tile(getSpriteType(MinesweeperPlusPlusGame.TILE_TYPE), 
-				ratSpawnCol * tileWidth, ratSpawnRow * tileHeight, (float)0, (float)0, MinesweeperPlusPlusGame.RAT_SPAWN_STATE, this); 
+				ratSpawnCol * tileWidth, (ratSpawnRow * tileHeight) + tileHeight, (float)0, (float)0, MinesweeperPlusPlusGame.RAT_SPAWN_STATE, this); 
 		
 		initClickHandler();	
 	}
@@ -393,7 +393,7 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 		}
 		
 		rat = new Rat(getSpriteType(MinesweeperPlusPlusGame.RAT_TYPE), 
-				ratSpawnLocation.getX(), ratSpawnLocation.getY() + tileHeight,
+				ratSpawnLocation.getX(), ratSpawnLocation.getY(),
 				(float)0, (float)0, initRatState);
 		rats.add(rat);
 		
@@ -513,7 +513,7 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 				{
 					for (Tile playableTile : playableTiles)
 					{
-						if (playableTile.getY()/tileHeight == i && playableTile.getX()/tileWidth == j)
+						if (playableTile.getY()/tileHeight - 1 == i && playableTile.getX()/tileWidth == j)
 						{
 							gameBoard[i][j].decrementNumBorderingMines();
 							break;
@@ -605,8 +605,8 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 			}
 		}
 		
-		if (this.inProgress() && minesToExplode.size() > 1 && 
-				(minesToExplode.elementAt(1)).getState().equals(MinesweeperPlusPlusGame.EXPLODED_STATE))
+		if ((minesToExplode.size() == 1 && minesToExplode.elementAt(0).getState().equals(MinesweeperPlusPlusGame.INITIAL_MINE_EXPLODED_STATE))
+				|| (minesToExplode.size() > 1 && minesToExplode.elementAt(1).getState().equals(MinesweeperPlusPlusGame.EXPLODED_STATE)))
 		{	
 			endGameAsLoss();
 			
@@ -616,8 +616,16 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 		if (minesToExplode.size() == 1)
 		{
 			minesToExplode.elementAt(0).setState(MinesweeperPlusPlusGame.INITIAL_MINE_EXPLODED_STATE);
-		
-			for (int row = 0; row < maxRows; row++) 
+		    
+			for (Tile mineTile : mineTiles)
+			{
+				if (mineTile.getMine().getState().equals(MinesweeperPlusPlusGame.INTACT_STATE))
+				{
+					mineTile.getCheese().setState(MinesweeperPlusPlusGame.INVISIBLE_STATE);
+					markForExplosion(mineTile.getMine());
+				}
+			}
+			/*for (int row = 0; row < maxRows; row++) 
 			{
 				for (int col = 0; col < maxCols; col++) 
 				{
@@ -627,7 +635,7 @@ public class MinesweeperPlusPlusGameDataModel extends MiniGameDataModel
 						markForExplosion(gameBoard[row][col].getMine());
 					}	
 				}
-			}
+			}*/
 		}
 		else if (minesToExplode.size() > 1)
 		{

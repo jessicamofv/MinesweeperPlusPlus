@@ -25,9 +25,8 @@ public class RatSpawnLocationSelectionHandler implements ActionListener
 		editor.clearBoardForRatSpawnLocationSelection();
 		LittleTile[][] gameBoard = editor.getBoardForRatSpawnLocationSelection();
 		LittleTile littleTile = gameBoard[littleTileRowIndex][littleTileColIndex];
-		// vvv this is done inside of setRatSpawnLocationSelectionPanel
-		/*littleTile.setState(MinesweeperPlusPlusLevelEditor.RAT_SPAWN_STATE);*/
+		littleTile.setState(MinesweeperPlusPlusLevelEditor.RAT_SPAWN_STATE);
 		editor.setRatSpawnLocation(littleTile);
-		editor.setRatSpawnLocationSelectionPanel(littleTileRowIndex, littleTileColIndex);
+		editor.setRatSpawnLocationSelectionPanel(/*littleTileRowIndex, littleTileColIndex*/);
 	}
 }

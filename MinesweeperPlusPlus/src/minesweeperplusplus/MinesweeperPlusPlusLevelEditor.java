@@ -86,6 +86,8 @@ public class MinesweeperPlusPlusLevelEditor
 	private JButton cancelButton2;
 	private JButton saveLevelButton;
 	private JButton logOutButton;
+	private boolean cLLWInit;
+	private boolean mCLOWInit;
 	private MinesweeperPlusPlusApplication application;
 	private String currentUser;
 	private SpriteType littleTileSpriteType;
@@ -209,10 +211,12 @@ public class MinesweeperPlusPlusLevelEditor
 		numMinesField = new JTextField(15);
 		ratSpawnRateRatsField = new JTextField(15);
 		ratSpawnRateSecsField = new JTextField(15);
+		cLLWInit = false;
+		mCLOWInit = false;
 		initWindow();
 		initLittleTileSpriteType();
-		initDefaultLevels();
-		initCustomLevels();
+		initLevels();
+		//initCustomLevels();
 		layoutGUI();
 		initHandlers();
 	}
@@ -225,9 +229,8 @@ public class MinesweeperPlusPlusLevelEditor
 		levelEditorWindow.setResizable(false);
 		levelEditorWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		
-		levelEditorWindow.setLocation((int)(screen.getWidth() - levelEditorWindow.getWidth())/9, (int)(screen.getHeight() - levelEditorWindow.getHeight())/45);
+		//Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		//levelEditorWindow.setLocation((int)(screen.getWidth() - levelEditorWindow.getWidth())/2, (int)(screen.getHeight() - levelEditorWindow.getHeight())/2);
 	}
 	
 	// INITIALIZE THE ONLY SPRITE TYPE USED IN LEVEL EDITOR WINDOW, THE SPRITE TYPE
@@ -262,31 +265,8 @@ public class MinesweeperPlusPlusLevelEditor
 		littleTileSpriteType.addState(RAT_SPAWN_STATE, littleRatSpawnLocationImage);
 	}
 	
-	public void initDefaultLevels()
+	public void initLevels()
 	{
-		// DECLARE AND INITILIAZE EACH 2D ARRAY REPRESENTING ONE OF THREE DEFAULT GAME BOARDS
-		littleGameBoardDefaultBeginner = initDefaultGameBoardTiles(9, 9, 0);
-		littleGameBoardDefaultIntermediate = initDefaultGameBoardTiles(16, 16, 1);
-		littleGameBoardDefaultAdvanced = initDefaultGameBoardTiles(16, 30, 2);
-		
-		// SET EACH DEFAULT LEVEL'S RAT SPAWN LOCATION TO TILE HALFWAY DOWN THE GAME SPACE AND HALF OF 
-		// THE DISTANCE BETWEEN THE OUTER BOUNDARY OF THE GAME SPACE AND THE LEFT EDGE OF THE GAME 
-		// BOARD
-		ratSpawnLocationDefaultBeginner = new LittleTile(littleTileSpriteType, 
-				(float)((int)((MAX_GAME_BOARD_COLS - 9)/4) * littleTileWidth), 
-					(float)(((int)(MAX_GAME_BOARD_ROWS/2) - 1) * littleTileHeight), 0, 0, 
-						RAT_SPAWN_STATE);
-		ratSpawnLocationDefaultIntermediate = new LittleTile(littleTileSpriteType, 
-				(float)((int)((MAX_GAME_BOARD_COLS - 16)/4) * littleTileWidth),  
-					(float)(((int)(MAX_GAME_BOARD_ROWS/2) - 1) * littleTileHeight), 0, 0, 
-						RAT_SPAWN_STATE);
-		ratSpawnLocationDefaultAdvanced = new LittleTile(littleTileSpriteType, 
-				(float)((int)((MAX_GAME_BOARD_COLS - 30)/4) * littleTileWidth),  
-					(float)(((int)(MAX_GAME_BOARD_ROWS/2) - 1) * littleTileHeight), 0, 0, 
-						RAT_SPAWN_STATE);
-		
-		String fileName;
-		
 		try
 		{
 			Reader reader = new FileReader(LEVEL_FILENAMES_FILE);
@@ -308,6 +288,24 @@ public class MinesweeperPlusPlusLevelEditor
 				}
 				
 				// CONSTRUCT EACH DEFAULT LEVEL TO BE WRITTEN TO ITS OWN TEXT FILE
+				
+				// DECLARE AND INITILIAZE EACH 2D ARRAY REPRESENTING ONE OF THREE DEFAULT GAME BOARDS
+				littleGameBoardDefaultBeginner = initDefaultGameBoardTiles(9, 9, 0);
+				littleGameBoardDefaultIntermediate = initDefaultGameBoardTiles(16, 16, 1);
+				littleGameBoardDefaultAdvanced = initDefaultGameBoardTiles(16, 30, 2);
+				
+				// SET EACH DEFAULT LEVEL'S RAT SPAWN LOCATION TO TILE HALFWAY DOWN THE GAME SPACE AND HALF OF 
+				// THE DISTANCE BETWEEN THE OUTER BOUNDARY OF THE GAME SPACE AND THE LEFT EDGE OF THE GAME 
+				// BOARD
+				ratSpawnLocationDefaultBeginner = littleGameBoardDefaultBeginner[MAX_GAME_BOARD_ROWS/2 - 1][(MAX_GAME_BOARD_COLS - 9)/4];
+				ratSpawnLocationDefaultBeginner.setState(RAT_SPAWN_STATE);
+				
+				ratSpawnLocationDefaultIntermediate = littleGameBoardDefaultIntermediate[MAX_GAME_BOARD_ROWS/2 - 1][(MAX_GAME_BOARD_COLS - 16)/4];
+				ratSpawnLocationDefaultIntermediate.setState(RAT_SPAWN_STATE);
+				
+				ratSpawnLocationDefaultAdvanced = littleGameBoardDefaultAdvanced[MAX_GAME_BOARD_ROWS/2 - 1][(MAX_GAME_BOARD_COLS - 30)/4];
+				ratSpawnLocationDefaultAdvanced.setState(RAT_SPAWN_STATE);
+				
 				levelToAdd = new MPPLevel(defaultLevelNames[0], 10, (float)1/60, ratSpawnLocationDefaultBeginner, 
 												littleGameBoardDefaultBeginner);
 				addDefaultLevel(levelFileNames.elementAt(0), 0);
@@ -322,7 +320,12 @@ public class MinesweeperPlusPlusLevelEditor
 			// IN DATA FROM EACH DEFAULT LEVEL TEXT FILE TO LOAD IT INTO GAME
 			else
 			{
-				if (levelFileNames.isEmpty())
+				while (line != null)
+				{
+					levelFileNames.add(line);
+					line = in.readLine();
+				}
+				/*if (levelFileNames.isEmpty())
 				{
 					levelFileNames.add(line);
 					
@@ -331,112 +334,102 @@ public class MinesweeperPlusPlusLevelEditor
 						line = in.readLine();
 						levelFileNames.add(line);
 					}
-				}
+				}*/
 			}
 			
 			// CLOSE BUFFEREDREADER WHEN DONE READING IN FILE NAMES IN LEVEL NAMES FILE
 			in.close();
 			
-			if (levels.isEmpty())
+			MPPLevel initLevel;
+			String levelName;
+			int numMines;
+			float ratSpawnRate;
+			int numVisibleTiles;
+			float x;
+			float y;
+			String xyCoords;
+			String[] xyCoordsData;
+			float rX;
+			float rY;
+			String rXYCoords;
+			String[] rXYCoordsData;
+			LittleTile rSpawnLocation;
+		
+			for (String fileName : levelFileNames)
 			{
-				MPPLevel initLevel;
-				String levelName;
-				int numMines;
-				float ratSpawnRate;
-				int numVisibleTiles;
-				float x;
-				float y;
-				String xyCoords;
-				String[] xyCoordsData;
-				LittleTile visibleLittleTile;
-				float rX;
-				float rY;
-				String rXYCoords;
-				String[] rXYCoordsData;
-				LittleTile rSpawnLocation;
+				reader = new FileReader(fileName);
+				in = new BufferedReader(reader);
 			
-				for (int i = 0; i < 3; i++)
+				// READ IN THIS LEVEL'S NAME
+				levelName = in.readLine();
+			
+				// AND NUMBER OF MINES
+				numMines = Integer.parseInt(in.readLine());
+			
+				// AND ITS RAT SPAWN RATE
+				ratSpawnRate = Float.parseFloat(in.readLine());
+			
+				// READ IN THE NUMBER OF VISIBLE TILES THIS LEVEL'S GAME BOARD HAS
+				numVisibleTiles = Integer.parseInt(in.readLine());
+			
+				// CREATE EMPTY GAME BOARD
+				LittleTile[][] boardToLoad = new LittleTile[MAX_GAME_BOARD_ROWS][MAX_GAME_BOARD_COLS];
+				
+				// READ IN EACH VISIBLE TILE'S COORDINATES AND ADD A VISIBLE LITTLE TILE WITH 
+				// THOSE COORDINATES TO visibleLittleTilesVector
+				for (int j = 0; j < numVisibleTiles; j++)
 				{
-					fileName = levelFileNames.elementAt(i);
-					reader = new FileReader(fileName);
-					in = new BufferedReader(reader);
-				
-					// READ IN THIS LEVEL'S NAME
-					levelName = in.readLine();
-				
-					// AND NUMBER OF MINES
-					numMines = Integer.parseInt(in.readLine());
-				
-					// AND ITS RAT SPAWN RATE
-					ratSpawnRate = Float.parseFloat(in.readLine());
-				
-					// READ IN THE NUMBER OF VISIBLE TILES THIS LEVEL'S GAME BOARD HAS
-					numVisibleTiles = Integer.parseInt(in.readLine());
-				
-					// READ IN EACH VISIBLE TILE'S COORDINATES AND ADD A VISIBLE LITTLE TILE WITH 
-					// THOSE COORDINATES TO visibleLittleTilesVector
-					for (int j = 0; j < numVisibleTiles; j++)
+					xyCoords = in.readLine();
+					xyCoordsData = xyCoords.split(FILE_DELIMITER);
+					x = Float.parseFloat(xyCoordsData[0]);
+					y = Float.parseFloat(xyCoordsData[1]);
+					boardToLoad[(int)y/littleTileHeight][(int)x/littleTileWidth] = new LittleTile(littleTileSpriteType, x, y, 
+															(float)0, (float)0, VISIBLE_STATE);
+					visibleLittleTiles.add(boardToLoad[(int)y/littleTileHeight][(int)x/littleTileWidth]);
+					
+				}
+			
+				float xCoord;
+				float yCoord;
+			
+				// FILL IT WITH INVISIBLE LITTLE TILES, CHANGING TO VISIBLE THE STATE OF THOSE TILES 
+				// WHOSE X AND Y COORDINATES CORRESPOND TO THOSE OF AN ELEMENT IN visibleLittleTiles 
+				// VECTOR
+				for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++) 
+				{
+					for (int col = 0; col < MAX_GAME_BOARD_COLS; col++) 
 					{
-						xyCoords = in.readLine();
-						xyCoordsData = xyCoords.split(FILE_DELIMITER);
-						x = Float.parseFloat(xyCoordsData[0]);
-						y = Float.parseFloat(xyCoordsData[1]);
-						visibleLittleTile = new LittleTile(littleTileSpriteType, x, y, 
-																(float)0, (float)0, VISIBLE_STATE);
-						visibleLittleTiles.add(visibleLittleTile);
-					}
-				
-					// CREATE EMPTY GAME BOARD
-					LittleTile[][] boardToLoad = new LittleTile[MAX_GAME_BOARD_ROWS][MAX_GAME_BOARD_COLS];
-				
-					float xCoord;
-					float yCoord;
-				
-					// FILL IT WITH INVISIBLE LITTLE TILES, CHANGING TO VISIBLE THE STATE OF THOSE TILES 
-					// WHOSE X AND Y COORDINATES CORRESPOND TO THOSE OF AN ELEMENT IN visibleLittleTiles 
-					// VECTOR
-					for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++) 
-					{
-						for (int col = 0; col < MAX_GAME_BOARD_COLS; col++) 
+						xCoord = col * littleTileWidth;
+						yCoord = row * littleTileHeight;
+					
+						if(!visibleLittleTiles.contains(boardToLoad[row][col]))
 						{
-							xCoord = col * littleTileWidth;
-							yCoord = row * littleTileHeight;
-						
 							boardToLoad[row][col] = new LittleTile(littleTileSpriteType, xCoord, 
-														yCoord, (float)0, (float)0, INVISIBLE_STATE);
-						
-							for (int k = 0; k < visibleLittleTiles.size(); k++)
-							{
-								if (xCoord == visibleLittleTiles.elementAt(k).getX() && 
-										yCoord == visibleLittleTiles.elementAt(k).getY())
-									boardToLoad[row][col] = new LittleTile(littleTileSpriteType, 
-											xCoord, yCoord, (float)0, (float)0, VISIBLE_STATE);
-							}
+									yCoord, (float)0, (float)0, INVISIBLE_STATE);
 						}
 					}
-				
-					visibleLittleTiles.removeAllElements();
-				
-					rXYCoords = in.readLine();
-					rXYCoordsData = rXYCoords.split(FILE_DELIMITER);
-					rX = Float.parseFloat(rXYCoordsData[0]);
-					rY = Float.parseFloat(rXYCoordsData[1]);
-				
-					in.close();
-				
-					rSpawnLocation = new LittleTile(littleTileSpriteType, rX, rY, (float)0, 
-													(float)0, RAT_SPAWN_STATE);
-					boardToLoad[(int)rY/littleTileHeight][(int)rX/littleTileWidth] = rSpawnLocation;
-				
-					initLevel = new MPPLevel(levelName, numMines, ratSpawnRate, rSpawnLocation, boardToLoad);
-				
-					levels.add(initLevel);
 				}
+			
+				visibleLittleTiles.clear();
+			
+				rXYCoords = in.readLine();
+				rXYCoordsData = rXYCoords.split(FILE_DELIMITER);
+				rX = Float.parseFloat(rXYCoordsData[0]);
+				rY = Float.parseFloat(rXYCoordsData[1]);
+			
+				in.close();
+			
+				rSpawnLocation = boardToLoad[(int)rY/littleTileHeight][(int)rX/littleTileWidth];
+				rSpawnLocation.setState(RAT_SPAWN_STATE);
+			
+				initLevel = new MPPLevel(levelName, numMines, ratSpawnRate, rSpawnLocation, boardToLoad);
+			
+				levels.add(initLevel);
 			}
 		}
 		catch(Exception e)
 		{
-			JOptionPane.showMessageDialog(levelEditorWindow, "Error loading default level");
+			JOptionPane.showMessageDialog(levelEditorWindow, "Error loading level");
 			System.exit(0);
         }
 	}
@@ -484,7 +477,7 @@ public class MinesweeperPlusPlusLevelEditor
 		return littleGameBoard;
 	}
 	
-	public void initCustomLevels()
+	/*public void initCustomLevels()
 	{
 		String fileName;
 		
@@ -528,7 +521,6 @@ public class MinesweeperPlusPlusLevelEditor
 			float y;
 			String xyCoords;
 			String[] xyCoordsData;
-			LittleTile visibleLittleTile;
 			float rX;
 			float rY;
 			String rXYCoords;
@@ -563,7 +555,7 @@ public class MinesweeperPlusPlusLevelEditor
 					xyCoordsData = xyCoords.split(FILE_DELIMITER);
 					x = Float.parseFloat(xyCoordsData[0]);
 					y = Float.parseFloat(xyCoordsData[1]);
-					visibleLittleTile = new LittleTile(littleTileSpriteType, x, y, 
+					LittleTile visibleLittleTile = new LittleTile(littleTileSpriteType, x, y, 
 											(float)0, (float)0, VISIBLE_STATE);
 					visibleLittleTiles.add(visibleLittleTile);
 				}
@@ -586,18 +578,15 @@ public class MinesweeperPlusPlusLevelEditor
 							
 						boardToLoad[row][col] = new LittleTile(littleTileSpriteType, xCoord, yCoord,
 								(float)0, (float)0, INVISIBLE_STATE);
-							
-						for (int k = 0; k < visibleLittleTiles.size(); k++)
-						{
-							if (xCoord == visibleLittleTiles.elementAt(k).getX() && 
-									yCoord == visibleLittleTiles.elementAt(k).getY())
-								boardToLoad[row][col] = new LittleTile(littleTileSpriteType, 
-										xCoord, yCoord, (float)0, (float)0, VISIBLE_STATE);
-						}
 					}
 				}
+				
+				for (LittleTile visibleLittleTile : visibleLittleTiles)
+				{
+					boardToLoad[(int)visibleLittleTile.getY()/littleTileHeight][(int)visibleLittleTile.getX()/littleTileWidth].setState(VISIBLE_STATE);
+				}
 					
-				visibleLittleTiles.removeAllElements();
+				visibleLittleTiles.clear();
 					
 				rXYCoords = in.readLine();
 				rXYCoordsData = rXYCoords.split(FILE_DELIMITER);
@@ -606,9 +595,8 @@ public class MinesweeperPlusPlusLevelEditor
 					
 				in.close();
 					
-				rSpawnLocation = new LittleTile(littleTileSpriteType, rX, rY, (float)0, 
-								(float)0, RAT_SPAWN_STATE);
-				boardToLoad[(int)rY/littleTileHeight][(int)rX/littleTileWidth] = rSpawnLocation;
+				rSpawnLocation = boardToLoad[(int)rY/littleTileHeight][(int)rX/littleTileWidth];
+				rSpawnLocation.setState(RAT_SPAWN_STATE);
 					
 				initLevel = new MPPLevel(levelName, numMines, ratSpawnRate, rSpawnLocation, boardToLoad);
 					
@@ -620,7 +608,7 @@ public class MinesweeperPlusPlusLevelEditor
 			JOptionPane.showMessageDialog(levelEditorWindow, "Error loading custom level");
 			System.exit(0);
         }
-	}
+	}*/
 	
 	// CHANGE LEVEL OPTION BEING DISPLAYED TO NEXT OR PREVIOUS OPTION, DEPENDING ON
 	// WHETHER USER PRESSED RIGHT OR LEFT ARROW BUTTON, RESPECTIVELY
@@ -709,6 +697,7 @@ public class MinesweeperPlusPlusLevelEditor
 		levelEditorWindow.add(eastPanel, BorderLayout.EAST);
 		
 		levelEditorWindow.setSize(1075, 450);
+		levelEditorWindow.setLocationRelativeTo(null);
 	}
 	
 	// HELPER METHOD FOR ARRANGING COMPONENTS IN A CONTAINER THAT UTILIZES GridBagLayout
@@ -774,9 +763,18 @@ public class MinesweeperPlusPlusLevelEditor
 	public void initCustomLevelLayoutWindow()
 	{
 		levelEditorWindow.setVisible(false);
-		initCLLWindow();
-		initCLLWLittleTiles();
-		layoutCLLWGUI();
+		
+		if (!cLLWInit)
+		{
+			initCLLWindow();
+			initCLLWLittleTiles();
+			layoutCLLWGUI();
+			cLLWInit = true;
+		}
+		
+		levelNameField.setText("");
+		levelNameField.requestFocus();
+		resetCLLWLittleTiles();
 		customLevelGameBoardPanel.repaint();
 		customLevelLayoutWindow.setVisible(true);
 	}
@@ -784,9 +782,20 @@ public class MinesweeperPlusPlusLevelEditor
 	public void initMoreCustomLevelOptionsWindow()
 	{
 		customLevelLayoutWindow.setVisible(false);
-		initMCLOWindow();
-		initMCLOWLittleTiles();
-		layoutMCLOWGUI();
+		
+		if (!mCLOWInit)
+		{
+			initMCLOWindow();
+			initMCLOWLittleTiles();
+			layoutMCLOWGUI();
+			mCLOWInit = true;
+		}
+		
+		numMinesField.setText("");
+		ratSpawnRateRatsField.setText("");
+		ratSpawnRateSecsField.setText("");
+		numMinesField.requestFocus();
+		recalculateMCLOWLittleTiles();
 		ratSpawnLocationSelectionPanel.repaint();
 		moreCustomLevelOptionsWindow.setVisible(true);
 	}
@@ -798,9 +807,8 @@ public class MinesweeperPlusPlusLevelEditor
 		customLevelLayoutWindow.setResizable(false);
 		customLevelLayoutWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		
-		customLevelLayoutWindow.setLocation((int)(screen.getWidth() - customLevelLayoutWindow.getWidth())/2, (int)(screen.getHeight() - customLevelLayoutWindow.getHeight())/2);
+		//Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		//customLevelLayoutWindow.setLocation((int)(screen.getWidth() - customLevelLayoutWindow.getWidth())/2, (int)(screen.getHeight() - customLevelLayoutWindow.getHeight())/2);
 	}
 	
 	public void initMCLOWindow()
@@ -809,9 +817,8 @@ public class MinesweeperPlusPlusLevelEditor
 		moreCustomLevelOptionsWindow.setResizable(false);
 		moreCustomLevelOptionsWindow.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		
-		moreCustomLevelOptionsWindow.setLocation((int)(screen.getWidth() - moreCustomLevelOptionsWindow.getWidth())/2, (int)(screen.getHeight() - moreCustomLevelOptionsWindow.getHeight())/2);
+		//Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		//moreCustomLevelOptionsWindow.setLocation((int)(screen.getWidth() - moreCustomLevelOptionsWindow.getWidth())/2, (int)(screen.getHeight() - moreCustomLevelOptionsWindow.getHeight())/2);
 	}
 	
 	// INITIALIZE BLANK GAME BOARD TO BE CUSTOMLY MANIPULATED BY USER
@@ -888,11 +895,90 @@ public class MinesweeperPlusPlusLevelEditor
 		}
 	}
 	
+	public void resetCLLWLittleTiles()
+	{
+		// visibleLittleTiles will have been cleared if a custom or default level was saved
+		// or initialized before the customization windows were reopened
+		if (!visibleLittleTiles.isEmpty())
+		{
+			for (LittleTile visibleLittleTile : visibleLittleTiles)
+			{
+				customLevelGameBoard[(int)visibleLittleTile.getY()/littleTileHeight][(int)visibleLittleTile.getX()/littleTileWidth].setState(INVISIBLE_OUTLINED_STATE);
+			}
+		}
+		// if so, will need to check every tile to see if it is visible
+		else
+		{
+			for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++)
+			{
+				for (int col = 0; col < MAX_GAME_BOARD_COLS; col++)
+				{
+					if (customLevelGameBoard[row][col].getState().equals(VISIBLE_STATE))
+					{
+						customLevelGameBoard[row][col].setState(INVISIBLE_OUTLINED_STATE);
+					}
+				}
+			}
+		}
+		
+		/*for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++)
+		{
+			for (int col = 0; col < MAX_GAME_BOARD_COLS; col++)
+			{
+				xCoord = col * littleTileWidth;
+				yCoord = row * littleTileHeight;
+				
+				for (LittleTile visibleLittleTile : visibleLittleTiles)
+				{
+					if (xCoord == visibleLittleTile.getX() && yCoord == visibleLittleTile.getY())
+					{
+						customLevelGameBoard[row][col].setState(INVISIBLE_OUTLINED_STATE);
+					}
+				}
+			}
+		}*/
+		
+		visibleLittleTiles.clear();
+	}
+	
 	public void initMCLOWLittleTiles()
 	{
 		boardForRatSpawnLocationSelection = new LittleTile[MAX_GAME_BOARD_ROWS][MAX_GAME_BOARD_COLS];
 		
 		float xCoord;
+		float yCoord;
+		
+		for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++)
+		{
+			for (int col = 0; col < MAX_GAME_BOARD_COLS; col++)
+			{
+				xCoord = col * littleTileWidth;
+				yCoord = row * littleTileHeight;
+				
+				boardForRatSpawnLocationSelection[row][col] = new LittleTile(littleTileSpriteType, 
+						xCoord, yCoord, (float)0, (float)0, INVISIBLE_STATE);
+			}
+		}
+		
+		for (LittleTile visibleLittleTile : visibleLittleTiles)
+		{
+			boardForRatSpawnLocationSelection[(int)visibleLittleTile.getY()/littleTileHeight][(int)visibleLittleTile.getX()/littleTileWidth].setState(VISIBLE_STATE);
+		}
+		
+		for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++)
+		{
+			for (int col = 0; col < MAX_GAME_BOARD_COLS; col++)
+			{
+				if (boardForRatSpawnLocationSelection[row][col].getState().equals(INVISIBLE_STATE))
+				{
+					RatSpawnLocationSelectionHandler rslsh = 
+							new RatSpawnLocationSelectionHandler(this, row, col);
+					(boardForRatSpawnLocationSelection[row][col]).setActionListener(rslsh);
+				}
+			}
+		}
+		
+		/*float xCoord;
 		float yCoord;
 		
 		for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++) 
@@ -905,10 +991,10 @@ public class MinesweeperPlusPlusLevelEditor
 				boardForRatSpawnLocationSelection[row][col] = new LittleTile(littleTileSpriteType, 
 						xCoord, yCoord, (float)0, (float)0, INVISIBLE_STATE);
 				
-				for (int i = 0; i < visibleLittleTiles.size(); i++)
+				for (LittleTile visibleLittleTile : visibleLittleTiles)
 				{
-					if (xCoord == visibleLittleTiles.elementAt(i).getX() && 
-							yCoord == visibleLittleTiles.elementAt(i).getY())
+					if (xCoord == visibleLittleTile.getX() && 
+							yCoord == visibleLittleTile.getY())
 						boardForRatSpawnLocationSelection[row][col] = 
 							new LittleTile(littleTileSpriteType, xCoord, yCoord, (float)0, (float)0, 
 									VISIBLE_STATE);
@@ -921,6 +1007,30 @@ public class MinesweeperPlusPlusLevelEditor
 					(boardForRatSpawnLocationSelection[row][col]).setActionListener(rslsh);
 				}
 			}
+		}*/
+	}
+	
+	public void recalculateMCLOWLittleTiles()
+	{
+		for (int row = 0; row < MAX_GAME_BOARD_ROWS; row++)
+		{
+			for (int col = 0; col < MAX_GAME_BOARD_COLS; col++)
+			{
+				if (boardForRatSpawnLocationSelection[row][col].getState().equals(VISIBLE_STATE))
+				{
+					boardForRatSpawnLocationSelection[row][col].setState(INVISIBLE_STATE);
+				}
+			}
+		}
+		
+		for (LittleTile visibleLittleTile : visibleLittleTiles)
+		{
+			boardForRatSpawnLocationSelection[(int)visibleLittleTile.getY()/littleTileHeight][(int)visibleLittleTile.getX()/littleTileWidth].setState(VISIBLE_STATE);
+		}
+		
+		if (ratSpawnLocation != null)
+		{
+			ratSpawnLocation.setState(INVISIBLE_STATE);
 		}
 	}
 	
@@ -959,7 +1069,8 @@ public class MinesweeperPlusPlusLevelEditor
 		
 		customLevelLayoutWindow.add(cllwEastPanel, BorderLayout.EAST);
 		
-		customLevelLayoutWindow.setSize(1000, 1000);
+		customLevelLayoutWindow.setSize(900, 500);
+		customLevelLayoutWindow.setLocationRelativeTo(null);
 	}
 	
 	public void layoutMCLOWGUI()
@@ -1009,7 +1120,8 @@ public class MinesweeperPlusPlusLevelEditor
 		
 		moreCustomLevelOptionsWindow.add(mcloEastPanel, BorderLayout.EAST);
 		
-		moreCustomLevelOptionsWindow.setSize(1000, 1000);
+		moreCustomLevelOptionsWindow.setSize(800, 530);
+		moreCustomLevelOptionsWindow.setLocationRelativeTo(null);
 	}
 	
 	// SCROLL TO NEXT OR PREVIOUS LEVEL OPTION, DEPENDING ON WHETHER USER PRESSED RIGHT OR LEFT
@@ -1046,12 +1158,15 @@ public class MinesweeperPlusPlusLevelEditor
 	
 	public void closeCustomizationWindows()
 	{
-		moreCustomLevelOptionsWindow.dispose();
+		moreCustomLevelOptionsWindow.setVisible(false);
+		customLevelLayoutWindow.setVisible(false);
+		levelEditorWindow.setVisible(true);
+		/*moreCustomLevelOptionsWindow.dispose();
 		customLevelLayoutWindow.dispose();
 		initLevelEditor();
 		initDefaultLevels();
 		initCustomLevels();
-		startLevelEditor();
+		startLevelEditor();*/
 	}
 	
 	public void backToCLLWindow()
@@ -1063,8 +1178,6 @@ public class MinesweeperPlusPlusLevelEditor
 	public void addDefaultLevel(String initFileName, int initDefaultIndex)
 	{
 		visibleLittleTiles = defaultVisibleLittleTiles.elementAt(initDefaultIndex);
-		
-		LittleTile visibleLittleTile;
 		
 		try
 		{
@@ -1083,9 +1196,8 @@ public class MinesweeperPlusPlusLevelEditor
 			out.println("" + visibleLittleTiles.size());
 						
 			// WRITE TO FILE COORDINATES OF LEVEL'S VISIBLE GAME BOARD TILES
-			for (int i = 0; i < visibleLittleTiles.size(); i++)
+			for (LittleTile visibleLittleTile : visibleLittleTiles)
 			{
-				visibleLittleTile = visibleLittleTiles.elementAt(i);
 				out.println(visibleLittleTile.getX() + FILE_DELIMITER + visibleLittleTile.getY());
 			}
 						
@@ -1104,7 +1216,7 @@ public class MinesweeperPlusPlusLevelEditor
         }
 		
 		// CLEAR visibleLittleTiles VECTOR SO THAT IT CAN BE USED FOR NEXT LEVEL
-		visibleLittleTiles.removeAllElements();
+		visibleLittleTiles.clear();
 	}
 	
 	public void addCustomLevel()
@@ -1126,25 +1238,23 @@ public class MinesweeperPlusPlusLevelEditor
 				
 				customLittleGameBoard[row][col] = new LittleTile(littleTileSpriteType, xCoord, yCoord, 
 						(float)0, (float)0, INVISIBLE_STATE);
-				
-				for (int i = 0; i < visibleLittleTiles.size(); i++)
-				{
-					if (xCoord == visibleLittleTiles.elementAt(i).getX() && 
-							yCoord == visibleLittleTiles.elementAt(i).getY())
-						customLittleGameBoard[row][col] = new LittleTile(littleTileSpriteType, xCoord, 
-								yCoord, (float)0, (float)0, VISIBLE_STATE);
-				}
 			}
+		}
+		
+		for (LittleTile visibleLittleTile : visibleLittleTiles)
+		{
+			customLittleGameBoard[(int)visibleLittleTile.getY()/littleTileHeight][(int)visibleLittleTile.getX()/littleTileWidth].setState(VISIBLE_STATE);
 		}
 		
 		// CONSTRUCT NEW LEVEL USING INFO ENTERED IN CUSTOMIZATION WINDOWS
 		float ratSpawnRate = (float)Integer.parseInt(ratSpawnRateRatsField.getText().trim())/Integer.parseInt(ratSpawnRateSecsField.getText().trim());
+		
+		customLittleGameBoard[(int)ratSpawnLocation.getY()/littleTileHeight][(int)ratSpawnLocation.getX()/littleTileWidth].setState(RAT_SPAWN_STATE);
+		
 		levelToAdd = new MPPLevel(levelNameField.getText(), Integer.parseInt(numMinesField.getText().trim()), 
 				ratSpawnRate, ratSpawnLocation, customLittleGameBoard);
 		
 		String fileName = "./setup/" + levelToAdd.getLevelName().replaceAll("\\s", "") + ".txt";
-		
-		LittleTile visibleLittleTile;
 		
 		try
 		{
@@ -1163,9 +1273,8 @@ public class MinesweeperPlusPlusLevelEditor
 			out.println("" + visibleLittleTiles.size());
 			
 			// WRITE TO FILE COORDINATES OF LEVEL'S VISIBLE GAME BOARD TILES
-			for (int i = 0; i < visibleLittleTiles.size(); i++)
+			for (LittleTile visibleLittleTile : visibleLittleTiles)
 			{
-				visibleLittleTile = visibleLittleTiles.elementAt(i);
 				out.println(visibleLittleTile.getX() + FILE_DELIMITER + visibleLittleTile.getY());
 			}
 			
@@ -1179,6 +1288,9 @@ public class MinesweeperPlusPlusLevelEditor
 			
 			levelFileNames.add(fileName);
 			updateLevelFileNamesFile();
+			levels.add(levelToAdd);
+			levelIndex = levels.size() - 1;
+			changePanel();
 		}
 		catch(Exception e)
         {
@@ -1187,7 +1299,8 @@ public class MinesweeperPlusPlusLevelEditor
         }
 		
 		// CLEAR visibleLittleTiles VECTOR SO THAT IT CAN BE USED FOR NEXT LEVEL
-		visibleLittleTiles.removeAllElements();
+		visibleLittleTiles.clear();
+		
 	}
 	
 	public void deleteCustomLevel()
@@ -1320,12 +1433,12 @@ public class MinesweeperPlusPlusLevelEditor
 		}
 	}
 	
-	public void setRatSpawnLocationSelectionPanel(int initRow, int initCol)
+	public void setRatSpawnLocationSelectionPanel(/*int initRow, int initCol*/)
 	{
-		float xCoord = boardForRatSpawnLocationSelection[initRow][initCol].getX();
+		/*float xCoord = boardForRatSpawnLocationSelection[initRow][initCol].getX();
 		float yCoord = boardForRatSpawnLocationSelection[initRow][initCol].getY();
 		boardForRatSpawnLocationSelection[initRow][initCol] = new LittleTile(littleTileSpriteType, 
-				xCoord, yCoord, (float)0, (float)0, RAT_SPAWN_STATE);
+				xCoord, yCoord, (float)0, (float)0, RAT_SPAWN_STATE);*/
 		
 		ratSpawnLocationSelectionPanel.setLittleGameBoard(boardForRatSpawnLocationSelection);
 		ratSpawnLocationSelectionPanel.repaint();
